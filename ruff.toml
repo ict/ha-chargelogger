@@ -9,6 +9,9 @@ preview = true
 explicit-preview-rules = true
 select = ["ALL", "RUF027"]  # Warn on potential f-string without 'f'
 ignore = [
+    "CPY",  # no copyright headers
+    "ARG",  # Home Assistant callback signatures are fixed
+    "ANN401", "PLR0913",  # Any in JSON payloads; keyword-only service helpers
     "ANN001", "ANN2", # Missing Annotations for return type
     "D2",  # Docstring stuff
     "D4",  # Don't tell me how to write my docstrings
@@ -26,3 +29,6 @@ extend-safe-fixes = ["ALL"]
 [format]
 quote-style = "single"
 docstring-code-format = true
+
+[lint.per-file-ignores]
+"tests/**" = ["D", "ARG", "ANN", "PLR0913", "PLR0917", "S105", "S106", "PLC0415", "SLF001", "PT011", "E501", "INP001", "TC", "PLR6301", "DOC", "FBT"]

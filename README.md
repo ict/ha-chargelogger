@@ -22,7 +22,9 @@ Copy `custom_components/chargelogger` into your Home Assistant `config/custom_co
 
 *Settings -> Devices & services -> Add integration -> Chargelogger*
 
-- **API URL**: base URL of the API including the `/api` path, e.g. `https://chargelogger.example.com/api`.
+- **API URL**: base URL of the API. Through the bundled web frontend that includes the `/api` path, e.g.
+  `https://chargelogger.example.com/api`. Talking to the backend container directly, it has no prefix, e.g.
+  `http://127.0.0.1:9555` when Home Assistant runs on the same host with the backend port published.
 - **API token**: a personal token (starts with `clk_`) created in Chargelogger.
 
 The token is validated against `/users/me`. One Chargelogger account can only be added once. If the token is
@@ -77,6 +79,38 @@ data:
   category: tires
   amount: 89.9
   note: Winter tires
+```
+
+## Service action `chargelogger.add_charge`
+
+Logs a charging session, e.g. from an automation that fires when your wallbox finishes.
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `config_entry_id` | if several accounts | account to use |
+| `car_id` | yes | Chargelogger car ID |
+| `cpo` | yes | charge point operator, by name (case-insensitive) or ID |
+| `kwh` | yes | energy charged in kWh |
+| `charge_type` | no | `AC` (default) or `DC` |
+| `odometer` | one of these two | odometer reading in km after the charge |
+| `km_driven` | one of these two | km driven since the previous charge |
+| `price_total` | no | total paid in currency units; defaults to the CPO's price per kWh |
+| `soc_after` | no | battery level after charging, 0-100 % |
+| `note` | no | free text |
+| `date` | no | defaults to now |
+
+The action can return the stored charge (`id`, `cpo_name`, `kwh_charged`, `price_total`, `price_per_kwh`,
+`car_odometer`), for example to send a notification with the computed price. Errors from Chargelogger, such as an
+odometer value lower than the previous charge, are shown with the server's message.
+
+```yaml
+action: chargelogger.add_charge
+data:
+  car_id: "your-car-id"
+  cpo: Home Wallbox
+  kwh: "{{ states('sensor.wallbox_session_energy') }}"
+  km_driven: 0
+response_variable: charge
 ```
 
 ## Example dashboard card

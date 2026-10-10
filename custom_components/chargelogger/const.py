@@ -34,3 +34,12 @@ CATEGORIES = [
     'other',
 ]
 KINDS = ['expense', 'income']
+
+CONF_CPO = 'cpo'
+CONF_KWH = 'kwh'
+CONF_CHARGE_TYPE = 'charge_type'
+CONF_ODOMETER = 'odometer'
+CONF_KM_DRIVEN = 'km_driven'
+CONF_PRICE_TOTAL = 'price_total'
+CONF_SOC_AFTER = 'soc_after'
+CHARGE_TYPES = ['AC', 'DC']

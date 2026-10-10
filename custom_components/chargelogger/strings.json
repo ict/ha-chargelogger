@@ -154,6 +154,12 @@
     },
     "unknown_car": {
       "message": "Car {car_id} does not exist for this account."
+    },
+    "unknown_cpo": {
+      "message": "CPO \"{cpo}\" does not exist for this account (use its name or ID)."
+    },
+    "charge_rejected": {
+      "message": "Chargelogger rejected the charge: {error}"
     }
   },
   "services": {
@@ -188,6 +194,56 @@
         "date": {
           "name": "Date",
           "description": "When the expense happened. Defaults to now."
+        }
+      }
+    },
+    "add_charge": {
+      "name": "Add charge",
+      "description": "Logs a charging session for a car. Without a price, the CPO's default price per kWh is used.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "The Chargelogger account. Optional if only one is configured."
+        },
+        "car_id": {
+          "name": "Car ID",
+          "description": "Chargelogger ID of the car."
+        },
+        "cpo": {
+          "name": "CPO",
+          "description": "Charge point operator, by name (case-insensitive) or ID."
+        },
+        "kwh": {
+          "name": "Energy",
+          "description": "Energy charged in kWh."
+        },
+        "charge_type": {
+          "name": "Charge type",
+          "description": "AC or DC."
+        },
+        "odometer": {
+          "name": "Odometer",
+          "description": "Odometer reading in km after the charge. Give this or km driven."
+        },
+        "km_driven": {
+          "name": "Km driven",
+          "description": "Km driven since the previous charge. Give this or the odometer."
+        },
+        "price_total": {
+          "name": "Total price",
+          "description": "Total paid in the configured currency. Defaults to the CPO price."
+        },
+        "soc_after": {
+          "name": "State of charge after",
+          "description": "Battery level after charging, in percent."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional free text."
+        },
+        "date": {
+          "name": "Date",
+          "description": "When the charge happened. Defaults to now."
         }
       }
     }

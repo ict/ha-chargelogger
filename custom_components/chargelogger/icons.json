@@ -6,6 +6,7 @@
     }
   },
   "services": {
-    "add_expense": { "service": "mdi:cash-plus" }
+    "add_expense": { "service": "mdi:cash-plus" },
+    "add_charge": { "service": "mdi:ev-plug-type2" }
   }
 }

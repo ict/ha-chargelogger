@@ -67,6 +67,17 @@ class StatsResult:
     per_car: dict[str, Stats]
 
 
+async def _error_detail(resp: aiohttp.ClientResponse) -> str:
+    """Return the API's error message (FastAPI `detail`), falling back to the status code."""
+    try:
+        detail = (await resp.json(content_type=None)).get('detail')
+    except aiohttp.ClientError, ValueError, AttributeError:
+        detail = None
+    if isinstance(detail, list):  # pydantic validation errors
+        detail = '; '.join(str(item.get('msg', item)) if isinstance(item, dict) else str(item) for item in detail)
+    return f'HTTP {resp.status}: {detail}' if detail else f'HTTP {resp.status}'
+
+
 class ChargeloggerClient:
     """Thin wrapper around aiohttp for the Chargelogger API."""
 
@@ -86,8 +97,7 @@ class ChargeloggerClient:
                     if resp.status == 401:
                         raise ChargeloggerAuthError
                     if 400 <= resp.status < 500:
-                        msg = f'HTTP {resp.status}'
-                        raise ChargeloggerRequestError(msg)
+                        raise ChargeloggerRequestError(await _error_detail(resp))
                     if resp.status >= 500:
                         msg = f'HTTP {resp.status}'
                         raise ChargeloggerConnectionError(msg)
@@ -115,6 +125,14 @@ class ChargeloggerClient:
             total=Stats.from_api(data['total']),
             per_car={str(bucket['car_id']): Stats.from_api(bucket) for bucket in data.get('per_car', [])},
         )
+
+    async def get_cpos(self) -> list[dict[str, Any]]:
+        """Return the user's charge point operators."""
+        return await self._request('GET', '/cpo/')
+
+    async def create_charge(self, body: dict[str, Any]) -> dict[str, Any]:
+        """Create a charge and return it as stored (incl. computed price)."""
+        return await self._request('POST', '/charge/', json=body)
 
     async def create_expense(self, body: dict[str, Any]) -> None:
         """Create an expense or income record."""

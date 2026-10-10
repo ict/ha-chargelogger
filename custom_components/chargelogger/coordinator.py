@@ -21,6 +21,7 @@ from .api import (
 from .const import DOMAIN, SCAN_INTERVAL
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable
     from datetime import datetime
 
     from homeassistant.config_entries import ConfigEntry
@@ -80,6 +81,46 @@ class ChargeloggerCoordinator(DataUpdateCoordinator[ChargeloggerData]):
             per_car=stats.per_car,
         )
 
+    async def _async_write(self, request: Awaitable[Any], rejected_key: str) -> Any:
+        """Run a write request, map errors to translated HomeAssistantErrors, then refresh."""
+        try:
+            result = await request
+        except ChargeloggerAuthError as err:
+            self.config_entry.async_start_reauth(self.hass)
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key='invalid_auth') from err
+        except ChargeloggerConnectionError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key='cannot_connect',
+                translation_placeholders={'error': str(err)},
+            ) from err
+        except ChargeloggerError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=rejected_key,
+                translation_placeholders={'error': str(err)},
+            ) from err
+        await self.async_request_refresh()
+        return result
+
+    async def async_create_charge(self, body: dict[str, Any]) -> dict[str, Any]:
+        """Create a charge and refresh; returns the stored charge."""
+        return await self._async_write(self.client.create_charge(body), 'charge_rejected')
+
+    async def async_get_cpos(self) -> list[dict[str, Any]]:
+        """Return the user's CPOs; raises a translated HomeAssistantError on failure."""
+        try:
+            return await self.client.get_cpos()
+        except ChargeloggerAuthError as err:
+            self.config_entry.async_start_reauth(self.hass)
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key='invalid_auth') from err
+        except ChargeloggerError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key='cannot_connect',
+                translation_placeholders={'error': str(err)},
+            ) from err
+
     async def async_create_expense(
         self,
         *,
@@ -100,21 +141,4 @@ class ChargeloggerCoordinator(DataUpdateCoordinator[ChargeloggerData]):
         }
         if note:
             body['note'] = note
-        try:
-            await self.client.create_expense(body)
-        except ChargeloggerAuthError as err:
-            self.config_entry.async_start_reauth(self.hass)
-            raise HomeAssistantError(translation_domain=DOMAIN, translation_key='invalid_auth') from err
-        except ChargeloggerConnectionError as err:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key='cannot_connect',
-                translation_placeholders={'error': str(err)},
-            ) from err
-        except ChargeloggerError as err:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key='expense_rejected',
-                translation_placeholders={'error': str(err)},
-            ) from err
-        await self.async_request_refresh()
+        await self._async_write(self.client.create_expense(body), 'expense_rejected')

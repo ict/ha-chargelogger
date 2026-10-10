@@ -36,6 +36,18 @@ CARS = [
     {'id': CAR_B, 'name': 'Beta', 'sale_date': None},
     {'id': CAR_OLD, 'name': 'Old', 'sale_date': '2024-01-01'},
 ]
+CPOS = [
+    {'id': 'cpo-home', 'name': 'Home Wallbox', 'default_price': 30},
+    {'id': 'cpo-fast', 'name': 'FastCharge', 'default_price': 59},
+]
+CHARGE_CREATED = {
+    'id': 'charge-1',
+    'cpo_name': 'Home Wallbox',
+    'kwh_charged': 3250,
+    'price_total': 975,
+    'price_per_kwh': 30,
+    'car_odometer': 48250,
+}
 STATS = {
     'from_date': '2026-10-01T00:00:00+02:00',
     'to_date': None,
@@ -73,6 +85,8 @@ def api(aioclient_mock: AiohttpClientMocker) -> AiohttpClientMocker:
     aioclient_mock.get(f'{BASE}/car/', json=CARS)
     aioclient_mock.get(f'{BASE}/charge/stats', json=STATS)
     aioclient_mock.post(f'{BASE}/expense/', status=201, json={'id': 'x'})
+    aioclient_mock.get(f'{BASE}/cpo/', json=CPOS)
+    aioclient_mock.post(f'{BASE}/charge/', status=201, json=CHARGE_CREATED)
     return aioclient_mock
 
 

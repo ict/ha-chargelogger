@@ -11,7 +11,7 @@ Requires Home Assistant 2026.10 or newer. No extra Python dependencies.
 ### HACS (custom repository)
 
 1. HACS -> three-dot menu -> *Custom repositories*.
-2. Add `https://github.com/OWNER/ha-chargelogger` as category *Integration*.
+2. Add `https://github.com/ict/ha-chargelogger` as category *Integration*.
 3. Install *Chargelogger* and restart Home Assistant.
 
 ### Manual

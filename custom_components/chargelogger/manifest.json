@@ -3,10 +3,10 @@
   "name": "Chargelogger",
   "codeowners": [],
   "config_flow": true,
-  "documentation": "https://github.com/OWNER/ha-chargelogger",
+  "documentation": "https://github.com/ict/ha-chargelogger",
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/OWNER/ha-chargelogger/issues",
+  "issue_tracker": "https://github.com/ict/ha-chargelogger/issues",
   "requirements": [],
   "version": "0.1.0"
 }

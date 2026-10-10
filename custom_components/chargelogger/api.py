@@ -76,9 +76,7 @@ class ChargeloggerClient:
         self._url = url.rstrip('/')
         self._headers = {'Authorization': f'Bearer {token}'}
 
-    async def _request(
-        self, method: str, path: str, *, params: dict[str, str] | None = None, json: Any = None
-    ) -> Any:
+    async def _request(self, method: str, path: str, *, params: dict[str, str] | None = None, json: Any = None) -> Any:
         try:
             async with asyncio.timeout(REQUEST_TIMEOUT):
                 resp = await self._session.request(
@@ -88,9 +86,11 @@ class ChargeloggerClient:
                     if resp.status == 401:
                         raise ChargeloggerAuthError
                     if 400 <= resp.status < 500:
-                        raise ChargeloggerRequestError(f'HTTP {resp.status}')
+                        msg = f'HTTP {resp.status}'
+                        raise ChargeloggerRequestError(msg)
                     if resp.status >= 500:
-                        raise ChargeloggerConnectionError(f'HTTP {resp.status}')
+                        msg = f'HTTP {resp.status}'
+                        raise ChargeloggerConnectionError(msg)
                     return await resp.json(content_type=None)
         except (TimeoutError, aiohttp.ClientError, ValueError) as err:
             raise ChargeloggerConnectionError(str(err)) from err
@@ -99,15 +99,14 @@ class ChargeloggerClient:
         """Return the username of the token owner (validates credentials)."""
         data = await self._request('GET', '/users/me')
         if not isinstance(data, dict) or not data.get('username'):
-            raise ChargeloggerConnectionError('Unexpected /users/me response')
+            msg = 'Unexpected /users/me response'
+            raise ChargeloggerConnectionError(msg)
         return str(data['username'])
 
     async def get_cars(self) -> list[Car]:
         """Return all cars of the user."""
         data = await self._request('GET', '/car/')
-        return [
-            Car(id=str(car['id']), name=str(car['name']), retired=car.get('sale_date') is not None) for car in data
-        ]
+        return [Car(id=str(car['id']), name=str(car['name']), retired=car.get('sale_date') is not None) for car in data]
 
     async def get_stats(self, from_date: datetime) -> StatsResult:
         """Return statistics since ``from_date`` (timezone-aware)."""

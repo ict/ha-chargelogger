@@ -14,13 +14,24 @@ def account_device(entry_id: str, title: str) -> DeviceInfo:
     return DeviceInfo(identifiers={(DOMAIN, entry_id)}, name=title, manufacturer='Chargelogger')
 
 
-def car_device(entry_id: str, car_id: str, car_name: str) -> DeviceInfo:
+def car_device(entry_id: str, account_device_id: str, car_id: str, car_name: str) -> DeviceInfo:
     """Device info for a car, linked to the account device."""
     return DeviceInfo(
         identifiers={(DOMAIN, f'{entry_id}_{car_id}')},
         name=car_name,
         manufacturer='Chargelogger',
-        via_device=(DOMAIN, entry_id),
+        via_device_id=account_device_id,
+    )
+
+
+def preset_device(entry_id: str, account_device_id: str, subentry_id: str, title: str) -> DeviceInfo:
+    """Device info for a quick-action preset (one device per subentry)."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, f'{entry_id}_preset_{subentry_id}')},
+        name=title,
+        manufacturer='Chargelogger',
+        model='Quick action',
+        via_device_id=account_device_id,
     )
 
 

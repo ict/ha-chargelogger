@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
@@ -22,6 +21,8 @@ from .api import (
 from .const import DOMAIN, SCAN_INTERVAL
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
@@ -59,6 +60,7 @@ class ChargeloggerCoordinator(DataUpdateCoordinator[ChargeloggerData]):
         """Initialize the coordinator."""
         super().__init__(hass, _LOGGER, config_entry=entry, name=DOMAIN, update_interval=SCAN_INTERVAL)
         self.client = client
+        self.account_device_id = ''
 
     async def _async_update_data(self) -> ChargeloggerData:
         start = month_start(dt_util.now())
@@ -105,7 +107,9 @@ class ChargeloggerCoordinator(DataUpdateCoordinator[ChargeloggerData]):
             raise HomeAssistantError(translation_domain=DOMAIN, translation_key='invalid_auth') from err
         except ChargeloggerConnectionError as err:
             raise HomeAssistantError(
-                translation_domain=DOMAIN, translation_key='cannot_connect', translation_placeholders={'error': str(err)}
+                translation_domain=DOMAIN,
+                translation_key='cannot_connect',
+                translation_placeholders={'error': str(err)},
             ) from err
         except ChargeloggerError as err:
             raise HomeAssistantError(

@@ -110,3 +110,18 @@ async def test_backend_rejection_shows_detail(
     api.post(f'{BASE}/charge/', status=422, json={'detail': 'Odometer must not decrease'})
     with pytest.raises(HomeAssistantError, match='Odometer must not decrease'):
         await _call(hass, car_id=CAR_A, cpo='Home Wallbox', kwh=10, odometer=1)
+
+
+async def test_cpo_beyond_first_api_page(hass: HomeAssistant, setup: MockConfigEntry, api: AiohttpClientMocker) -> None:
+    """The API returns 20 items by default; the integration must ask for all of them."""
+    api.clear_requests()
+    many = [{'id': f'cpo-{i}', 'name': f'Network {i}', 'default_price': 40} for i in range(32)]
+    api.get(f'{BASE}/cpo/?limit=500', json=many)
+    api.get(f'{BASE}/cpo/', json=many[:20])  # what a request without limit would get
+    api.post(f'{BASE}/charge/', status=201, json={'id': 'c'})
+    api.get(f'{BASE}/car/', json=[{'id': CAR_A, 'name': 'Alpha', 'sale_date': None}])
+    api.get(f'{BASE}/charge/stats', json={'total': {}, 'per_car': []})
+    api.get(f'{BASE}/expense/', json=[])
+    await _call(hass, car_id=CAR_A, cpo='Network 31', kwh=10, km_driven=5)
+    (body,) = _charge_posts(api)
+    assert body['cpo_id'] == 'cpo-31'

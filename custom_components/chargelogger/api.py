@@ -11,6 +11,8 @@ import aiohttp
 
 from .const import REQUEST_TIMEOUT
 
+PAGE_SIZE = 500
+
 
 class ChargeloggerError(Exception):
     """Base error for the Chargelogger client."""
@@ -138,6 +140,17 @@ class ChargeloggerClient:
         except (TimeoutError, aiohttp.ClientError, ValueError) as err:
             raise ChargeloggerConnectionError(str(err)) from err
 
+    async def _get_all(self, path: str, params: dict[str, str] | None = None) -> list[dict[str, Any]]:
+        """GET a list endpoint page by page; the API returns only 20 items unless asked for more."""
+        params = {'limit': str(PAGE_SIZE), **(params or {})}
+        size = int(params['limit'])
+        items: list[dict[str, Any]] = []
+        while True:
+            page = await self._request('GET', path, params={**params, 'offset': str(len(items))})
+            items.extend(page)
+            if len(page) < size:
+                return items
+
     async def get_username(self) -> str:
         """Return the username of the token owner (validates credentials)."""
         data = await self._request('GET', '/users/me')
@@ -148,7 +161,7 @@ class ChargeloggerClient:
 
     async def get_cars(self) -> list[Car]:
         """Return all cars of the user."""
-        data = await self._request('GET', '/car/')
+        data = await self._get_all('/car/')
         return [Car(id=str(car['id']), name=str(car['name']), retired=car.get('sale_date') is not None) for car in data]
 
     async def get_stats(self, from_date: datetime) -> StatsResult:
@@ -165,22 +178,19 @@ class ChargeloggerClient:
         from_date: datetime | None = None,
         car_id: str | None = None,
         category: str | None = None,
-        limit: int = 500,
+        limit: int = PAGE_SIZE,
     ) -> list[dict[str, Any]]:
         """Return expense records, newest first; pages through results unless `limit` is small."""
-        params: dict[str, str] = {'limit': str(limit)}
+        params: dict[str, str] = {'limit': str(min(limit, PAGE_SIZE))}
         if from_date is not None:
             params['from_date'] = from_date.isoformat()
         if car_id is not None:
             params['car_id'] = car_id
         if category is not None:
             params['category'] = category
-        items: list[dict[str, Any]] = []
-        while True:
-            page = await self._request('GET', '/expense/', params={**params, 'offset': str(len(items))})
-            items.extend(page)
-            if len(page) < limit or limit < 100:
-                return items
+        if limit < PAGE_SIZE:  # e.g. "newest one": a single request
+            return await self._request('GET', '/expense/', params=params)
+        return await self._get_all('/expense/', params)
 
     async def get_last_expense_date(self, *, category: str, car_id: str | None = None) -> datetime | None:
         """Date of the newest expense in `category` (optionally for one car), or None."""
@@ -189,7 +199,7 @@ class ChargeloggerClient:
 
     async def get_cpos(self) -> list[dict[str, Any]]:
         """Return the user's charge point operators."""
-        return await self._request('GET', '/cpo/')
+        return await self._get_all('/cpo/')
 
     async def create_charge(self, body: dict[str, Any]) -> dict[str, Any]:
         """Create a charge and return it as stored (incl. computed price)."""

@@ -1,6 +1,6 @@
 # Chargelogger for Home Assistant
 
-Custom integration for [Chargelogger](https://github.com/OWNER/chargelogger), a self-hosted EV charging and
+Custom integration for [EVLogger (Chargelogger)](https://github.com/ict/evlogger), a self-hosted EV charging and
 expense tracker. It shows this month's charging statistics and lets you book recurring expenses
 (parking, car wash, ...) with one button press.
 

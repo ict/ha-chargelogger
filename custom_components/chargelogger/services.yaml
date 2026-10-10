@@ -1,0 +1,53 @@
+add_expense:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: chargelogger
+    car_id:
+      required: true
+      example: "65f0c0ffee0123456789abcd"
+      selector:
+        text:
+    category:
+      required: true
+      selector:
+        select:
+          translation_key: category
+          options:
+            - insurance
+            - tax
+            - tires
+            - tolls_parking
+            - cleaning
+            - maintenance
+            - accessories
+            - subscriptions
+            - other
+    amount:
+      required: true
+      example: 12.5
+      selector:
+        number:
+          min: 0.01
+          max: 1000000
+          step: 0.01
+          mode: box
+    kind:
+      required: false
+      default: expense
+      selector:
+        select:
+          translation_key: kind
+          options:
+            - expense
+            - income
+    note:
+      required: false
+      selector:
+        text:
+    date:
+      required: false
+      selector:
+        datetime:

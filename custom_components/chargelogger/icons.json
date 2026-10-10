@@ -1,0 +1,11 @@
+{
+  "entity": {
+    "sensor": {
+      "count": { "default": "mdi:ev-station" },
+      "cost": { "default": "mdi:cash" }
+    }
+  },
+  "services": {
+    "add_expense": { "service": "mdi:cash-plus" }
+  }
+}

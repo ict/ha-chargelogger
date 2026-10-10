@@ -1,0 +1,28 @@
+target-version = 'py314'
+line-length = 120
+
+[lint.flake8-quotes]
+inline-quotes = "single"
+
+[lint]
+preview = true
+explicit-preview-rules = true
+select = ["ALL", "RUF027"]  # Warn on potential f-string without 'f'
+ignore = [
+    "ANN001", "ANN2", # Missing Annotations for return type
+    "D2",  # Docstring stuff
+    "D4",  # Don't tell me how to write my docstrings
+    "COM812", "ISC001", # Disabled because formatter complains about potential side effects
+    "PERF203",  # Try-Except within loop
+    "PLR2004",  # Magic numbers in comparison
+    "TD", "FIX", # TODO and FIXME
+    "T201",  # print
+    "TRY003", "TRY400",  # Exception stuff
+    "Q", # Quotes are adapted with the formatter
+    "S101", # Use of assert
+]
+extend-safe-fixes = ["ALL"]
+
+[format]
+quote-style = "single"
+docstring-code-format = true

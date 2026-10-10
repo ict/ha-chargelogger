@@ -1,0 +1,195 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Chargelogger",
+        "description": "Enter the API URL (including the `/api` path) and a personal API token (starts with `clk_`).",
+        "data": {
+          "url": "API URL",
+          "token": "API token"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "The API token was rejected. Enter a new token.",
+        "data": {
+          "token": "API token"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Chargelogger",
+        "data": {
+          "url": "API URL",
+          "token": "API token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the Chargelogger server.",
+      "invalid_auth": "The API token was rejected.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This Chargelogger account is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "reconfigure_successful": "Reconfiguration was successful.",
+      "unique_id_mismatch": "The token belongs to a different account."
+    }
+  },
+  "config_subentries": {
+    "preset": {
+      "initiate_flow": {
+        "user": "Add preset",
+        "reconfigure": "Edit preset"
+      },
+      "entry_type": "Quick-action preset",
+      "step": {
+        "user": {
+          "title": "Add preset",
+          "description": "Pressing the resulting button books this expense with the current date and time.",
+          "data": {
+            "name": "Name",
+            "car_id": "Car",
+            "category": "Category",
+            "kind": "Kind",
+            "amount": "Amount",
+            "note": "Note"
+          },
+          "data_description": {
+            "amount": "In your configured currency, for example 12.50."
+          }
+        },
+        "reconfigure": {
+          "title": "Edit preset",
+          "data": {
+            "name": "Name",
+            "car_id": "Car",
+            "category": "Category",
+            "kind": "Kind",
+            "amount": "Amount",
+            "note": "Note"
+          },
+          "data_description": {
+            "amount": "In your configured currency, for example 12.50."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "The Chargelogger connection is not loaded. Fix the connection first.",
+        "reconfigure_successful": "Preset updated."
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Chargelogger options",
+        "data": {
+          "currency": "Currency (ISO 4217 code)"
+        },
+        "data_description": {
+          "currency": "Chargelogger stores plain amounts; this is the currency they are shown and entered in, for example EUR."
+        }
+      }
+    },
+    "error": {
+      "invalid_currency": "Enter a three-letter currency code such as EUR."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "energy": {
+        "name": "Energy charged this month"
+      },
+      "cost": {
+        "name": "Charging cost this month"
+      },
+      "count": {
+        "name": "Charges this month"
+      }
+    }
+  },
+  "selector": {
+    "category": {
+      "options": {
+        "insurance": "Insurance",
+        "tax": "Tax",
+        "tires": "Tires",
+        "tolls_parking": "Tolls & parking",
+        "cleaning": "Cleaning",
+        "maintenance": "Maintenance",
+        "accessories": "Accessories",
+        "subscriptions": "Subscriptions",
+        "other": "Other"
+      }
+    },
+    "kind": {
+      "options": {
+        "expense": "Expense",
+        "income": "Income"
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_auth": {
+      "message": "The Chargelogger API token was rejected. Re-authenticate the integration."
+    },
+    "cannot_connect": {
+      "message": "Could not reach the Chargelogger server: {error}"
+    },
+    "expense_rejected": {
+      "message": "Chargelogger rejected the expense: {error}"
+    },
+    "update_failed": {
+      "message": "Failed to update Chargelogger data: {error}"
+    },
+    "entry_id_required": {
+      "message": "Several Chargelogger accounts are configured. Specify config_entry_id."
+    },
+    "entry_not_found": {
+      "message": "Chargelogger config entry {id} was not found."
+    },
+    "entry_not_loaded": {
+      "message": "The Chargelogger config entry is not loaded."
+    },
+    "unknown_car": {
+      "message": "Car {car_id} does not exist for this account."
+    }
+  },
+  "services": {
+    "add_expense": {
+      "name": "Add expense",
+      "description": "Creates an expense or income record for a car.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "The Chargelogger account. Optional if only one is configured."
+        },
+        "car_id": {
+          "name": "Car ID",
+          "description": "Chargelogger ID of the car."
+        },
+        "category": {
+          "name": "Category",
+          "description": "Expense category."
+        },
+        "amount": {
+          "name": "Amount",
+          "description": "Amount in the configured currency (must be positive)."
+        },
+        "kind": {
+          "name": "Kind",
+          "description": "Expense, or income such as a refund."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional free text."
+        },
+        "date": {
+          "name": "Date",
+          "description": "When the expense happened. Defaults to now."
+        }
+      }
+    }
+  }
+}

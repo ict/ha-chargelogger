@@ -97,7 +97,7 @@ async def test_unknown_cpo(hass: HomeAssistant, setup: MockConfigEntry, api: Aio
 
 
 async def test_unknown_car(hass: HomeAssistant, setup: MockConfigEntry, api: AiohttpClientMocker) -> None:
-    with pytest.raises(ServiceValidationError, match='does not exist'):
+    with pytest.raises(ServiceValidationError, match='No car'):
         await _call(hass, car_id='nope', cpo='Home Wallbox', kwh=10, km_driven=5)
     assert not _charge_posts(api)
 

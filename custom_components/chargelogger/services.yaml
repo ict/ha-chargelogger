@@ -5,11 +5,14 @@ add_expense:
       selector:
         config_entry:
           integration: chargelogger
-    car_id:
+    car:
       required: true
-      example: "65f0c0ffee0123456789abcd"
+      example: "Model Y"
       selector:
-        text:
+        device:
+          filter:
+            integration: chargelogger
+            model: Car
     category:
       required: true
       selector:
@@ -59,11 +62,14 @@ add_charge:
       selector:
         config_entry:
           integration: chargelogger
-    car_id:
+    car:
       required: true
-      example: "65f0c0ffee0123456789abcd"
+      example: "Model Y"
       selector:
-        text:
+        device:
+          filter:
+            integration: chargelogger
+            model: Car
     cpo:
       required: true
       example: "Home Wallbox"

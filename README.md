@@ -60,12 +60,24 @@ Edit or delete a preset from the same card (*Edit preset* / *Delete*).
 
 Categories: insurance, tax, tires, tolls & parking, cleaning, maintenance, accessories, subscriptions, other.
 
+## Choosing the car
+
+Both actions take a `car` field. In the action editor it is a picker that lists your Chargelogger car
+devices. In YAML you can give any of:
+
+- the car's **name** as shown in Chargelogger, e.g. `car: Model Y` (case-insensitive),
+- the car **device ID** (what the picker inserts),
+- the **Chargelogger car ID**, shown as *Serial number* on the car's device page.
+
+The account is derived from the car, so `config_entry_id` is only needed when two configured accounts have a
+car with the same name. Older automations using `car_id:` keep working.
+
 ## Service action `chargelogger.add_expense`
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `config_entry_id` | if several accounts | account to use |
-| `car_id` | yes | Chargelogger car ID |
+| `car` | yes | the car, see [Choosing the car](#choosing-the-car) |
+| `config_entry_id` | rarely | account, only if a car name exists in several accounts |
 | `category` | yes | one of the categories above |
 | `amount` | yes | positive, in currency units (`12.5`) |
 | `kind` | no | `expense` (default) or `income` |
@@ -75,7 +87,7 @@ Categories: insurance, tax, tires, tolls & parking, cleaning, maintenance, acces
 ```yaml
 action: chargelogger.add_expense
 data:
-  car_id: "your-car-id"
+  car: Model Y
   category: tires
   amount: 89.9
   note: Winter tires
@@ -87,8 +99,8 @@ Logs a charging session, e.g. from an automation that fires when your wallbox fi
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `config_entry_id` | if several accounts | account to use |
-| `car_id` | yes | Chargelogger car ID |
+| `car` | yes | the car, see [Choosing the car](#choosing-the-car) |
+| `config_entry_id` | rarely | account, only if a car name exists in several accounts |
 | `cpo` | yes | charge point operator, by name (case-insensitive) or ID |
 | `kwh` | yes | energy charged in kWh |
 | `charge_type` | no | `AC` (default) or `DC` |
@@ -106,7 +118,7 @@ odometer value lower than the previous charge, are shown with the server's messa
 ```yaml
 action: chargelogger.add_charge
 data:
-  car_id: "your-car-id"
+  car: Model Y
   cpo: Home Wallbox
   kwh: "{{ states('sensor.wallbox_session_energy') }}"
   km_driven: 0

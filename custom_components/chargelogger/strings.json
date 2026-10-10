@@ -153,13 +153,19 @@
       "message": "The Chargelogger config entry is not loaded."
     },
     "unknown_car": {
-      "message": "Car {car_id} does not exist for this account."
+      "message": "No car \"{car_id}\" found. Use the car device, its name or its Chargelogger ID."
     },
     "unknown_cpo": {
       "message": "CPO \"{cpo}\" does not exist for this account (use its name or ID)."
     },
     "charge_rejected": {
       "message": "Chargelogger rejected the charge: {error}"
+    },
+    "not_a_car_device": {
+      "message": "The selected device is not a Chargelogger car."
+    },
+    "ambiguous_car": {
+      "message": "Several cars match \"{car}\". Pick the car device or set config_entry_id."
     }
   },
   "services": {
@@ -169,11 +175,11 @@
       "fields": {
         "config_entry_id": {
           "name": "Account",
-          "description": "The Chargelogger account. Optional if only one is configured."
+          "description": "Only needed if several accounts have a car with the same name."
         },
-        "car_id": {
-          "name": "Car ID",
-          "description": "Chargelogger ID of the car."
+        "car": {
+          "name": "Car",
+          "description": "The car: its device, its name, or its Chargelogger ID (shown as serial number on the device page)."
         },
         "category": {
           "name": "Category",
@@ -203,11 +209,11 @@
       "fields": {
         "config_entry_id": {
           "name": "Account",
-          "description": "The Chargelogger account. Optional if only one is configured."
+          "description": "Only needed if several accounts have a car with the same name."
         },
-        "car_id": {
-          "name": "Car ID",
-          "description": "Chargelogger ID of the car."
+        "car": {
+          "name": "Car",
+          "description": "The car: its device, its name, or its Chargelogger ID (shown as serial number on the device page)."
         },
         "cpo": {
           "name": "CPO",

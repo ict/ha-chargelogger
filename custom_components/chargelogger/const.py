@@ -15,6 +15,8 @@ PRESS_GUARD_SECONDS = 10
 
 SUBENTRY_PRESET = 'preset'
 CONF_CAR_ID = 'car_id'
+CONF_CAR = 'car'
+CAR_MODEL = 'Car'
 CONF_CATEGORY = 'category'
 CONF_KIND = 'kind'
 CONF_AMOUNT = 'amount'

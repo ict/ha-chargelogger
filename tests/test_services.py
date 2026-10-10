@@ -62,7 +62,7 @@ async def test_add_expense_income_with_date_and_note(
 
 
 async def test_unknown_car(hass: HomeAssistant, setup: MockConfigEntry, api: AiohttpClientMocker) -> None:
-    with pytest.raises(ServiceValidationError, match='does not exist'):
+    with pytest.raises(ServiceValidationError, match='No car'):
         await _call(hass, car_id='nope', category='tires', amount=1)
     assert not _posts(api)
 
@@ -79,13 +79,12 @@ async def test_invalid_amount_rejected(hass: HomeAssistant, setup: MockConfigEnt
         await _call(hass, car_id=CAR_A, category='tires', amount=0)
 
 
-async def test_entry_id_required_with_two_entries(
-    hass: HomeAssistant, setup: MockConfigEntry, api: AiohttpClientMocker
-) -> None:
+async def test_second_unloaded_entry(hass: HomeAssistant, setup: MockConfigEntry, api: AiohttpClientMocker) -> None:
     second = MockConfigEntry(domain=DOMAIN, unique_id='other', data={CONF_URL: BASE, CONF_TOKEN: TOKEN})
     second.add_to_hass(hass)
-    with pytest.raises(ServiceValidationError, match='config_entry_id'):
-        await _call(hass, car_id=CAR_A, category='tires', amount=1)
+    # Only loaded accounts are searched, so the car is still found without config_entry_id.
+    await _call(hass, car_id=CAR_A, category='tires', amount=1)
+    assert len(_posts(api)) == 1
     with pytest.raises(ServiceValidationError, match='not loaded'):
         await _call(hass, config_entry_id=second.entry_id, car_id=CAR_A, category='tires', amount=1)
     with pytest.raises(ServiceValidationError, match='not found'):

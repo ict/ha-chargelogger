@@ -53,7 +53,8 @@ Cars added later appear automatically; cars that are retired or deleted make the
 
 Presets are **config subentries**: on the integration card choose *Add preset*. Each preset has a name, a car,
 a category, a kind (expense or income), an amount in your currency (stored as cents) and an optional note.
-Every preset becomes a button entity on its own device. Pressing it books an expense dated *now*; afterwards
+Every preset becomes a button entity on its own device, with an icon matching its category (income presets
+share `mdi:cash-plus`; an icon you set yourself takes precedence). Pressing it books an expense dated *now*; afterwards
 the data is refreshed. A second press of the same button within 10 seconds is ignored (a warning is logged).
 Failures (server unreachable, rejected request, bad token) are reported as translated errors.
 Edit or delete a preset from the same card (*Edit preset* / *Delete*).

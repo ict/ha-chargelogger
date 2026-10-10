@@ -1,12 +1,52 @@
 {
   "entity": {
     "sensor": {
-      "count": { "default": "mdi:ev-station" },
-      "cost": { "default": "mdi:cash" }
+      "count": {
+        "default": "mdi:ev-station"
+      },
+      "cost": {
+        "default": "mdi:cash"
+      }
+    },
+    "button": {
+      "insurance": {
+        "default": "mdi:shield-car"
+      },
+      "tax": {
+        "default": "mdi:bank"
+      },
+      "tires": {
+        "default": "mdi:tire"
+      },
+      "tolls_parking": {
+        "default": "mdi:parking"
+      },
+      "cleaning": {
+        "default": "mdi:car-wash"
+      },
+      "maintenance": {
+        "default": "mdi:wrench"
+      },
+      "accessories": {
+        "default": "mdi:package-variant"
+      },
+      "subscriptions": {
+        "default": "mdi:autorenew"
+      },
+      "other": {
+        "default": "mdi:dots-horizontal"
+      },
+      "income": {
+        "default": "mdi:cash-plus"
+      }
     }
   },
   "services": {
-    "add_expense": { "service": "mdi:cash-plus" },
-    "add_charge": { "service": "mdi:ev-plug-type2" }
+    "add_expense": {
+      "service": "mdi:cash-plus"
+    },
+    "add_charge": {
+      "service": "mdi:ev-plug-type2"
+    }
   }
 }

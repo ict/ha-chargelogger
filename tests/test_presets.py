@@ -43,6 +43,22 @@ async def test_button_created_for_preset(hass: HomeAssistant, setup: MockConfigE
     assert reg_entry.config_subentry_id == next(iter(setup.subentries))
 
 
+async def test_button_icon_follows_category(hass: HomeAssistant, setup: MockConfigEntry) -> None:
+    reg_entry = er.async_get(hass).async_get(BUTTON)
+    assert reg_entry.translation_key == 'tolls_parking'
+    assert reg_entry.original_name is None  # name still comes from the preset's device
+
+
+def test_every_category_and_income_has_an_icon() -> None:
+    import json
+    from pathlib import Path
+
+    from custom_components.chargelogger.const import CATEGORIES
+
+    icons = json.loads((Path(__file__).parents[1] / 'custom_components/chargelogger/icons.json').read_text())
+    assert set(icons['entity']['button']) == {*CATEGORIES, 'income'}
+
+
 async def test_press_posts_expected_body(hass: HomeAssistant, setup: MockConfigEntry, api: AiohttpClientMocker) -> None:
     await _press(hass)
     (body,) = _posts(api)
@@ -174,6 +190,8 @@ async def test_reconfigure_preset(hass: HomeAssistant, setup: MockConfigEntry) -
     data = setup.subentries[subentry_id].data
     assert data['amount'] == 399
     assert data['kind'] == 'income'
+    # The entry reloads after the change; income presets use the income icon.
+    assert er.async_get(hass).async_get(BUTTON).translation_key == 'income'
 
 
 async def test_preset_flow_aborts_when_entry_not_loaded(hass: HomeAssistant, entry: MockConfigEntry) -> None:

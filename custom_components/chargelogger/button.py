@@ -53,6 +53,8 @@ class PresetButton(ChargeloggerEntity, ButtonEntity):
         super().__init__(coordinator)
         self._preset = dict(subentry.data)
         self._attr_name = None  # the entity is the device's main feature
+        # Icon per category (icons.json); income presets share one icon. A user-set icon still wins.
+        self._attr_translation_key = 'income' if self._preset[CONF_KIND] == 'income' else self._preset[CONF_CATEGORY]
         self._attr_unique_id = f'{entry.entry_id}_preset_{subentry.subentry_id}'
         self._last_press: datetime | None = None
         self._attr_device_info = preset_device(

@@ -91,6 +91,7 @@ async def test_update_refreshes_values(
     api.clear_requests()
     api.get(f'{BASE}/users/me', json={'username': 'tester'})
     api.get(f'{BASE}/car/', json=[{'id': 'car-a', 'name': 'Alpha', 'sale_date': None}])
+    api.get(f'{BASE}/expense/', json=[])
     api.get(
         f'{BASE}/charge/stats',
         json={'total': {'count': 9, 'kwh_charged': 100, 'price_total': 50, 'charges_without_price': 0}, 'per_car': []},
@@ -122,6 +123,7 @@ async def test_new_car_gets_entities_on_update(
 ) -> None:
     api.clear_requests()
     api.get(f'{BASE}/car/', json=[{'id': 'car-new', 'name': 'Gamma', 'sale_date': None}])
+    api.get(f'{BASE}/expense/', json=[])
     api.get(
         f'{BASE}/charge/stats',
         json={'total': {'count': 0, 'kwh_charged': 0, 'price_total': 0, 'charges_without_price': 0}, 'per_car': []},

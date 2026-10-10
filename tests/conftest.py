@@ -48,6 +48,13 @@ CHARGE_CREATED = {
     'price_per_kwh': 30,
     'car_odometer': 48250,
 }
+WASH_A = '2026-10-04T09:30:00Z'
+EXPENSES = [  # this month
+    {'id': 'e1', 'car_id': CAR_A, 'category': 'cleaning', 'kind': 'expense', 'amount': 1690, 'date': WASH_A},
+    {'id': 'e2', 'car_id': CAR_A, 'category': 'tolls_parking', 'kind': 'expense', 'amount': 450, 'date': WASH_A},
+    {'id': 'e3', 'car_id': CAR_B, 'category': 'other', 'kind': 'income', 'amount': 1000, 'date': WASH_A},
+    {'id': 'e4', 'car_id': CAR_B, 'category': 'tires', 'amount': 8000, 'date': WASH_A},  # legacy: no kind
+]
 STATS = {
     'from_date': '2026-10-01T00:00:00+02:00',
     'to_date': None,
@@ -85,6 +92,11 @@ def api(aioclient_mock: AiohttpClientMocker) -> AiohttpClientMocker:
     aioclient_mock.get(f'{BASE}/car/', json=CARS)
     aioclient_mock.get(f'{BASE}/charge/stats', json=STATS)
     aioclient_mock.post(f'{BASE}/expense/', status=201, json={'id': 'x'})
+    # First match wins: specific "last wash" queries before the generic monthly list.
+    aioclient_mock.get(f'{BASE}/expense/?category=cleaning&car_id={CAR_A}', json=[EXPENSES[0]])
+    aioclient_mock.get(f'{BASE}/expense/?category=cleaning&car_id={CAR_B}', json=[])
+    aioclient_mock.get(f'{BASE}/expense/?category=cleaning', json=[EXPENSES[0]])
+    aioclient_mock.get(f'{BASE}/expense/', json=EXPENSES)
     aioclient_mock.get(f'{BASE}/cpo/', json=CPOS)
     aioclient_mock.post(f'{BASE}/charge/', status=201, json=CHARGE_CREATED)
     return aioclient_mock

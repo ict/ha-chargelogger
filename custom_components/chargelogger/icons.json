@@ -6,6 +6,12 @@
       },
       "cost": {
         "default": "mdi:cash"
+      },
+      "expenses": {
+        "default": "mdi:cash-multiple"
+      },
+      "last_wash": {
+        "default": "mdi:car-wash"
       }
     },
     "button": {

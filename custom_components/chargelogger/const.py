@@ -12,6 +12,8 @@ DEFAULT_CURRENCY = 'EUR'
 SCAN_INTERVAL = timedelta(minutes=15)
 REQUEST_TIMEOUT = 15
 PRESS_GUARD_SECONDS = 10
+# Category whose newest entry counts as the last car wash.
+WASH_CATEGORY = 'cleaning'
 
 SUBENTRY_PRESET = 'preset'
 CONF_CAR_ID = 'car_id'

@@ -44,8 +44,13 @@ statistics / Energy dashboard.
 | Account | Energy charged this month | kWh, `energy`, state class `total` |
 | Account | Charging cost this month | currency, `monetary`, attribute `charges_without_price` |
 | Account | Charges this month | count |
-| Each active car | the same three sensors | retired cars (sale date set) get no entities |
+| Account | Expenses this month | net of income, currency, `monetary`; attributes `expenses`, `income`, `entries`, `category_<name>` |
+| Account | Last car wash | timestamp of the newest *cleaning* expense; **disabled by default** |
+| Each active car | the same sensors | retired cars (sale date set) get no entities |
 | Each preset | one button | see below |
+
+"Expenses this month" matches EVLogger's net total: expenses minus income such as refunds. To use *Last car
+wash*, enable it on the account or car device; it reads the newest expense in the *Cleaning* category.
 
 Cars added later appear automatically; cars that are retired or deleted make their sensors unavailable.
 

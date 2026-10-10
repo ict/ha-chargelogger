@@ -1,4 +1,4 @@
-"""Sensors for Chargelogger: monthly energy, cost and charge count per account and car."""
+"""Sensors for Chargelogger: this month's charging and expenses, and the last car wash, per account and car."""
 
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import UnitOfEnergy
 
-from .api import Stats
 from .const import CONF_CURRENCY, DEFAULT_CURRENCY
 from .entity import ChargeloggerEntity, account_device, car_device
 
@@ -25,7 +24,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-    from .coordinator import ChargeloggerConfigEntry, ChargeloggerCoordinator
+    from .coordinator import ChargeloggerConfigEntry, ChargeloggerCoordinator, ScopeData
 
 PARALLEL_UPDATES = 0
 
@@ -34,7 +33,9 @@ PARALLEL_UPDATES = 0
 class ChargeloggerSensorDescription(SensorEntityDescription):
     """Describes a Chargelogger sensor."""
 
-    value_fn: Callable[[Stats], float | int]
+    value_fn: Callable[[ScopeData], float | int | datetime | None]
+    attrs_fn: Callable[[ScopeData], dict[str, Any]] | None = None
+    monetary: bool = False
 
 
 SENSORS: tuple[ChargeloggerSensorDescription, ...] = (
@@ -45,7 +46,7 @@ SENSORS: tuple[ChargeloggerSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         state_class=SensorStateClass.TOTAL,
         suggested_display_precision=2,
-        value_fn=lambda stats: stats.energy_kwh,
+        value_fn=lambda d: d.charges.energy_kwh,
     ),
     ChargeloggerSensorDescription(
         key='cost',
@@ -53,13 +54,37 @@ SENSORS: tuple[ChargeloggerSensorDescription, ...] = (
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.TOTAL,
         suggested_display_precision=2,
-        value_fn=lambda stats: stats.cost,
+        monetary=True,
+        value_fn=lambda d: d.charges.cost,
+        attrs_fn=lambda d: {'charges_without_price': d.charges.charges_without_price},
     ),
     ChargeloggerSensorDescription(
         key='count',
         translation_key='count',
         state_class=SensorStateClass.TOTAL,
-        value_fn=lambda stats: stats.count,
+        value_fn=lambda d: d.charges.count,
+    ),
+    ChargeloggerSensorDescription(
+        key='expenses',
+        translation_key='expenses',
+        device_class=SensorDeviceClass.MONETARY,
+        state_class=SensorStateClass.TOTAL,
+        suggested_display_precision=2,
+        monetary=True,
+        value_fn=lambda d: d.expenses.net,
+        attrs_fn=lambda d: {
+            'expenses': d.expenses.expenses,
+            'income': d.expenses.income,
+            'entries': d.expenses.count,
+            **{f'category_{name}': amount for name, amount in d.expenses.per_category.items()},
+        },
+    ),
+    ChargeloggerSensorDescription(
+        key='last_wash',
+        translation_key='last_wash',
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_registry_enabled_default=False,
+        value_fn=lambda d: d.last_wash,
     ),
 )
 
@@ -105,7 +130,7 @@ class ChargeloggerSensor(ChargeloggerEntity, SensorEntity):
         scope = 'total' if car_id is None else car_id
         self._attr_unique_id = f'{entry.entry_id}_{scope}_{description.key}'
         self._attr_device_info = self._build_device(entry)
-        if description.key == 'cost':
+        if description.monetary:
             self._attr_native_unit_of_measurement = entry.options.get(CONF_CURRENCY, DEFAULT_CURRENCY)
 
     def _build_device(self, entry: ChargeloggerConfigEntry) -> DeviceInfo:
@@ -119,34 +144,31 @@ class ChargeloggerSensor(ChargeloggerEntity, SensorEntity):
         )
 
     @property
-    def _stats(self) -> Stats | None:
-        data = self.coordinator.data
-        if self._car_id is None:
-            return data.total
-        if self._car_id not in data.active_cars:
-            return None
-        return data.per_car.get(self._car_id, Stats())
+    def _scope(self) -> ScopeData | None:
+        return self.coordinator.data.scope(self._car_id)
 
     @property
     def available(self) -> bool:
         """Unavailable when the car is gone or retired."""
-        return super().available and self._stats is not None
+        return super().available and self._scope is not None
 
     @property
-    def native_value(self) -> float | int | None:
+    def native_value(self) -> float | int | datetime | None:
         """Return the converted value."""
-        stats = self._stats
-        return None if stats is None else self.entity_description.value_fn(stats)
+        scope = self._scope
+        return None if scope is None else self.entity_description.value_fn(scope)
 
     @property
-    def last_reset(self) -> datetime:
-        """Start of the current month in the HA time zone."""
+    def last_reset(self) -> datetime | None:
+        """Start of the current month in the HA time zone, for the monthly totals."""
+        if self.entity_description.state_class is not SensorStateClass.TOTAL:
+            return None
         return self.coordinator.data.month_start
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
-        """Expose how many charges lack a price (cost may be understated)."""
-        stats = self._stats
-        if self.entity_description.key != 'cost' or stats is None:
+        """Breakdowns, e.g. charges without a price or expenses per category."""
+        scope = self._scope
+        if self.entity_description.attrs_fn is None or scope is None:
             return None
-        return {'charges_without_price': stats.charges_without_price}
+        return self.entity_description.attrs_fn(scope)

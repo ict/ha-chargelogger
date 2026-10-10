@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any
 
 import aiohttp
 
 from .const import REQUEST_TIMEOUT
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class ChargeloggerError(Exception):
@@ -56,6 +54,41 @@ class Stats:
             energy_kwh=int(data.get('kwh_charged', 0)) / 100,
             cost=int(data.get('price_total', 0)) / 100,
             charges_without_price=int(data.get('charges_without_price', 0)),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class ExpenseStats:
+    """Expenses of a period in currency units; `net` = expenses minus income."""
+
+    count: int = 0
+    expenses: float = 0.0
+    income: float = 0.0
+    per_category: dict[str, float] = field(default_factory=dict)
+
+    @property
+    def net(self) -> float:
+        """Net cost, as EVLogger's expense total shows it."""
+        return round(self.expenses - self.income, 2)
+
+    @classmethod
+    def from_api(cls, items: list[dict[str, Any]]) -> ExpenseStats:
+        """Sum API expense records (amounts in cents; records without `kind` are expenses)."""
+        expenses = income = 0
+        per_category: dict[str, int] = {}
+        for item in items:
+            amount = int(item.get('amount', 0))
+            if item.get('kind') == 'income':
+                income += amount
+            else:
+                expenses += amount
+                category = str(item.get('category', 'other'))
+                per_category[category] = per_category.get(category, 0) + amount
+        return cls(
+            count=len(items),
+            expenses=expenses / 100,
+            income=income / 100,
+            per_category={k: v / 100 for k, v in sorted(per_category.items())},
         )
 
 
@@ -125,6 +158,34 @@ class ChargeloggerClient:
             total=Stats.from_api(data['total']),
             per_car={str(bucket['car_id']): Stats.from_api(bucket) for bucket in data.get('per_car', [])},
         )
+
+    async def get_expenses(
+        self,
+        *,
+        from_date: datetime | None = None,
+        car_id: str | None = None,
+        category: str | None = None,
+        limit: int = 500,
+    ) -> list[dict[str, Any]]:
+        """Return expense records, newest first; pages through results unless `limit` is small."""
+        params: dict[str, str] = {'limit': str(limit)}
+        if from_date is not None:
+            params['from_date'] = from_date.isoformat()
+        if car_id is not None:
+            params['car_id'] = car_id
+        if category is not None:
+            params['category'] = category
+        items: list[dict[str, Any]] = []
+        while True:
+            page = await self._request('GET', '/expense/', params={**params, 'offset': str(len(items))})
+            items.extend(page)
+            if len(page) < limit or limit < 100:
+                return items
+
+    async def get_last_expense_date(self, *, category: str, car_id: str | None = None) -> datetime | None:
+        """Date of the newest expense in `category` (optionally for one car), or None."""
+        items = await self.get_expenses(car_id=car_id, category=category, limit=1)
+        return datetime.fromisoformat(items[0]['date']) if items else None
 
     async def get_cpos(self) -> list[dict[str, Any]]:
         """Return the user's charge point operators."""
